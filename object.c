@@ -145,6 +145,7 @@ int object_read(const ObjectID *id, ObjectType *type_out, void **data_out, size_
     *data_out = malloc(*len_out + 1);
     if (!*data_out) { free(buf); return -1; }
     memcpy(*data_out, buf + data_offset, *len_out);
+    ((char *)*data_out)[*len_out] = '\0';
     free(buf);
     return 0;
 }
