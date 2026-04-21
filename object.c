@@ -48,7 +48,7 @@ int object_exists(const ObjectID *id) {
     return access(path, F_OK) == 0;
 }
 
-// ─── TODO: Implement these ───────────────────────────────────────────────────
+// ─── IMPLEMENT ───────────────────────────────────────────────────────────────
 
 int object_write(ObjectType type, const void *data, size_t len, ObjectID *id_out) {
     const char *type_str = (type == OBJ_BLOB) ? "blob" :
@@ -84,8 +84,8 @@ int object_write(ObjectType type, const void *data, size_t len, ObjectID *id_out
     object_path(id_out, path, sizeof(path));
 
     // Write to temp file in same directory
-    char tmp[520];
-    snprintf(tmp, sizeof(tmp), "%s/.tmp_XXXXXX", dir);
+    char tmp[600];
+    snprintf(tmp, sizeof(tmp), "%s/tmp_XXXXXX", dir);
     int fd = mkstemp(tmp);
     if (fd < 0) { free(full); return -1; }
 
@@ -119,7 +119,9 @@ int object_read(const ObjectID *id, ObjectType *type_out, void **data_out, size_
     rewind(f);
     uint8_t *buf = malloc(total);
     if (!buf) { fclose(f); return -1; }
-    fread(buf, 1, total, f);
+    if (fread(buf, 1, total, f) != total) {
+        free(buf); fclose(f); return -1;
+    }
     fclose(f);
 
     // Verify integrity: recompute hash and compare
@@ -146,4 +148,3 @@ int object_read(const ObjectID *id, ObjectType *type_out, void **data_out, size_
     free(buf);
     return 0;
 }
-
